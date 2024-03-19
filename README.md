@@ -1,53 +1,46 @@
-# EXTRA_SYSTEL
-USO:
+# Integração de Dados com PostgreSQL
 
-1. CRIAR UMA PASTA DENTRO DA PASTA ONDE SERA GERADO OS ARQUIVOS
-TERA QUE COLOCAR O ARQUIVO NA MAQUINA DO CLIENTE EXTRA_SYSTEL.PYW DENTRO DA PASTA CRIADA
-INTALAR O PYTHON, ADICIONAR AS VARIAVEIS DE AMBIENTE PATH E ADICIONAR O PIP 
-INSTALAR A LIB DE COMUNICAÇÃO COM POSTGRESQL:
+Este repositório contém um script em Python para integração de dados em um banco de dados PostgreSQL. O script realiza análises em arquivos de texto e envia as informações processadas para o banco de dados.
 
-2. NO CMD 
-NA RAIZ DO PC C:/ 
-DAR O COMANDO 
-pip install postgresql
+## Funcionalidades Principais
 
-3. ESTARA PRONTA PARA RODAR
+1. **Análise de Arquivos**
+   - Funções para analisar arquivos de texto e extrair informações específicas, como conservação, fracionamento, alergias, informações do fornecedor, etc.
 
-4. ARQUIVOS UTILIZADOS: ITENSMGV, TXINFO, CAMPEXT1, CONSERVA E TXFORN (BAK OU TXT)
+2. **Conexão com Banco de Dados**
+   - Conexão com banco de dados PostgreSQL, tanto em ambiente local quanto remoto.
 
-5. LAYOUT OFICIAL PESO/UNI 150MM CAMPOS CONFIGURADOS ETIQUETA: 
-CAMPO 1 RECEITAS, CAMPO 2 ALERGENICOS, CAMPO 3 CONSERVANTES, CAMPO 4 FORNECEDOR, CAMPO 5 DADO DE FORNECEDOR (FIXO NA ETIQUETA)
+3. **Atualização de Dados no Banco**
+   - Funções para enviar informações analisadas para o banco de dados PostgreSQL.
 
-6. DENTRO DO PRODUTO NO SUITE NEO:
-CAMPO 1 RECEITAS -> CAMPO EXTRA 1, 
-CAMPO 2 ALERGENICOS -> CAMPO EXTRA 2, 
-CAMPO 3 CONSERVANTES -> DADOS DE CONSERVAÇÃO, 
-CAMPO 4 FORNECEDOR -> INGREDIENTES, 
+4. **Integração de Dados**
+   - Integração de informações de produtos com campos específicos do banco de dados.
 
-7. AO RODAR A APLICAÇÃO ELA:
-GERA UM ARQUIVO DE ITENS (ITENSSYSTEL) COM AS DEVIDAS CORREÇÕES NA PASTA CRIADA
-GERA UM ARQUIVO DE NUTRICIONAL (NUTRISYSTEL) COM AS DEVIDAS CORREÇÕES NA PASTA CRIADA
-GERA AUTOMATICAMENTE UM ARQUIVO DE PORTAS QUE VAI SE ENCONTRAR VAZIO NA INSTALAÇÃO NA PASTA CRIADA
+## Uso e Execução
 
-8. ITENSSYSTEL E NUTRISYSTEL:
-DOIS ARQUIVOS QUE SERÃO USADOS PARA REALIZAR A IMPORTAÇÃO NO IMPORTADOR DO SUITE NEO
+1. **Configuração do Ambiente**
+   - Certifique-se de ter o Python instalado em sua máquina. Você pode baixar o Python em [python.org](https://www.python.org/downloads/).
+   - Instale a biblioteca psycopg2 para conexão com o PostgreSQL:
+     ```
+     pip install psycopg2
+     ```
 
-9. PORTAS:
-ESSE ARQUIVO DE TEXTO É ONDE DIRECIONAMOS OS IPS DO EQUIPAMENTOS
-PARA ENVIAR OS DADOS DE RECEITA, ALERGENICOS, DADOS DE CONSERVAÇÃO E FORNECEDOR
-AO DIRECIONARMOS OS IPS ESSES DADOS SERAO ENVIADOS DIRETAMENTE PARA OS EQUIPAMENTOS
-CASO NÃO ENCONTRE ALGUMA BALANÇA NA REDE OU OCORRA ALGUM PROBLEMA NO ENVIO DOS DADOS ELE GERA UM ARQUIVO LOG-ERRO-CONEXÃO
+2. **Configuração do Banco de Dados**
+   - Tenha um banco de dados PostgreSQL configurado e em execução. Baixe o PostgreSQL em [postgresql.org](https://www.postgresql.org/download/).
+   - Anote as credenciais do banco de dados: nome do banco, usuário, senha, host e porta.
 
-10. ARQUIVO LOG-ERRO-CONEXÃO:
-COM A MENSAGEM ERRO AO IMPORTAR PARA: [IP DO EQUIPAMENTO NO ARQUIVO DE TEXTO]
-RECOMENDADO VERIFICAR SE O EQUIPAMENTO SE ENCONTRA CONECTADO E COM O IP INFORMADO
+3. **Configuração do Script**
+   - Abra o arquivo `main.py` e atualize as credenciais do banco de dados nas funções `conectar_banco` e `infoSystel_writer` de acordo com suas configurações.
 
-11. CASO OCORRA TUDO BEM ELE ENVIA OS DADOS PARA AS BALANÇAS E GERA UM ARQUIVO LOG
+4. **Execução do Script**
+   - Execute o script principal `main.py` para iniciar o processo de integração de dados.
 
-12. ARQUIVO LOG:
-AO TERMINAR A IMPORTAÇÃO DOS DADOS ELE ADICIONA AO ARQUIVO LOG A MENSAGEM:
-importou corretamente: [IPS DE TODAS AS BALANÇAS QUE ELE CONSEGUIU IMPORTAR OS DADOS]
-SEMPRE SERA FEITO O ENVIO DOS DADOS AO LOCALHOST ENTÃO TAMBÉM APARECERA NA MENSAGEM O LOCALHOST (DEFAULT)
+## Detalhes Técnicos
 
+- Linguagem: Python
+- Dependências: psycopg2
+- Banco de Dados: PostgreSQL
 
-APOS RODAR APLICAÇÃO REALIZAR A SINCRONIZAÇÃO PARA ENVIAR OS DADOS
+## Observações
+
+Certifique-se de configurar corretamente as credenciais do banco de dados no script antes de executá-lo. Se precisar de mais assistência ou esclarecimentos sobre a configuração, não hesite em entrar em contato.
