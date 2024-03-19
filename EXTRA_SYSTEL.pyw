@@ -1,8 +1,20 @@
 import os
 import time
 import os.path
-import postgresql
+import psycopg2
+from datetime import datetime
 
+def obter_data_hora_criacao(arquivo):
+    try:
+        # Obtém informações do arquivo
+        info = os.stat(arquivo)
+
+        # Obtém a data e hora de criação
+        data_hora_criacao = datetime.fromtimestamp(info.st_mtime).isoformat()
+
+        return data_hora_criacao
+    except:
+        return True
 
 
 def caracter_remove(txt):
@@ -56,6 +68,29 @@ def info_analyze(arq):
     info_txt.close()
     return dict_info
 
+def conectar_banco(ip):
+    try:
+        if ip == 'localhost':
+            conn = psycopg2.connect(
+                dbname="cuora",
+                user="postgres",
+                password="postgres",
+                host="localhost",
+                port="5432"
+            )
+            return conn
+        else:
+            conn = psycopg2.connect(
+            dbname="cuora",
+            user="user",
+            password="1234",
+            host=ip,
+            port="5432"    
+            )
+            return conn    
+    except psycopg2.Error as e:
+        print("Erro ao conectar ao banco de dados:", e)
+        return None
 
 def infoSystel_writer(arq, d_info, d_forn, d_aler, d_fra, d_con, ip):
     item = open(arq, 'r')
@@ -71,7 +106,7 @@ def infoSystel_writer(arq, d_info, d_forn, d_aler, d_fra, d_con, ip):
         
         if True:
             db_acess = f'pq://{user}:{passw}@{ip}:5432/cuora'
-            db = postgresql.open(db_acess)
+            db = conectar_banco(ip)
             for line in item:
                 lote = line[90:102]
                 cod_plu = line[3:9]
@@ -88,11 +123,11 @@ def infoSystel_writer(arq, d_info, d_forn, d_aler, d_fra, d_con, ip):
                 cons = d_con[cod_cons] if cod_cons in d_con else " "
                 frac = d_fra[cod_frac] if cod_frac in d_fra else " "
 
-                if len(frac) < 158 and frac != " ":
-                    frac = frac + ' '*(158- len(frac))
+                if len(forn) < 158 and forn != " ":
+                    forn = forn + ' '*(158- len(forn))
 
                 
-                forn_frac = frac + ' ' + forn
+                forn_frac = forn + ' ' + frac
 
                 lote = int(lote)
 
@@ -139,7 +174,8 @@ def enviar_inf(t, p, db, campo):
     comando = f"""UPDATE product
                set {campo} = '{tara}'
                WHERE product_id = {plu}"""
-    db.execute(comando)
+    cur = db.cursor()
+    cur.execute(comando)
 
 
 def file_ports_ex():
@@ -217,161 +253,173 @@ def comunicabal():
 
 
 
-
-while(True):
-    
-    arquivo = '../itensmgv.txt' if not (os.path.isfile('../itensmgv.bak')) else '../itensmgv.bak'
-    
-    if(os.path.isfile(arquivo)):
-        time.sleep(1)
-
-        
+def main():
+    data_e_hora = ""
+    while(True):
         
 
-        if(os.path.isfile('../conserva.bak')):
-            dict_conserva = conserva_analyze('../conserva.bak')
-        
-        elif(os.path.isfile('../conserva.txt')):
-             dict_conserva = conserva_analyze('../conserva.txt')
-        else: dict_conserva = ''
-
-        if(os.path.isfile('../fraciona.bak')):
-            dict_fraciona = fraciona_analyze('../fraciona.bak')
-        elif(os.path.isfile('../fraciona.txt')):
-            dict_fraciona = fraciona_analyze('../fraciona.txt')
-        else: dict_fraciona = ''
-
-        if(os.path.isfile('../campext1.bak')):
-            dict_aler = alergia_analyze('../campext1.bak')
-        elif(os.path.isfile('../campext1.txt')):
-            dict_aler = alergia_analyze('../campext1.txt')
-        else: dict_aler = ''
-
-        if(os.path.isfile('../txforn.bak')):
-            dict_forn =  forn_analyze('../txforn.bak')
-        elif(os.path.isfile('../txforn.txt')):
-            dict_forn =  forn_analyze('../txforn.txt')
-        else:
-            dict_forn = '' 
-        
-        if(os.path.isfile('../txinfo.bak')):
-            info = info_analyze('../txinfo.bak')
-        elif(os.path.isfile('../txinfo.txt')):
-            info = info_analyze('../txinfo.txt')
-
-
-        else:
-            info = ""
-            pass
-        if(os.path.isfile('../infnutri.bak')):
-            arquivoInfonutri = open('../infnutri.bak', 'r')
-        elif(os.path.isfile('../infnutri.bak')):
-            arquivoInfonutri = open('../infnutri.txt', 'r')
-        else:
-            arquivoInfonutri = open('../infnutri.bak', 'w')
-        
-        itens_analize(arquivo)
-
-
-        arquivoMGV7 = open('../itens.TXT', 'r')
-
-        nutri = open('nutriSystel.TXT', 'w')
-        codPlu_array = []
-        codNutri_array = []
-        codNutriMGVARRAY = []
-        receita_array = []
-        setor_array = []
-        arquivoSystel = open('itensSystel.TXT', 'w')
-        for linha in arquivoMGV7:
-        
-            
-
-            codPlu = linha[3:9]
-            
-            codPlu_array.append(codPlu)
-            codNutriMGV = linha[79:84]
-            codReceita = linha[68:74]
-            receita_array.append(codReceita)
-
-            codNutriMGVARRAY.append(int(codNutriMGV))
-            textoModificado = linha[0:43] + (' ')*25 + codPlu + linha[74:150] +  "000000|01|                                                                      0000000000000000000000000||0||0000000000000000000000"
-
-
-            arquivoSystel.write(textoModificado+"\n")
-
-        arquivoSystel.close()
-
-
-
-        
-        array_cod_nutri = []
-
-
+        arquivo = '../itensmgv.txt' if not (os.path.isfile('../itensmgv.bak')) else '../itensmgv.bak'
         
 
 
-        for linha in arquivoInfonutri:
-            codNutri = int(linha[1:7])
+        if(os.path.isfile(arquivo)):
+            criacao_do_arquivo = obter_data_hora_criacao(arquivo)
+            eh_igual = criacao_do_arquivo == data_e_hora
+            if not(eh_igual):
+                data_e_hora = criacao_do_arquivo
+                time.sleep(1)
 
-            boo = linha[7:110] != '000000000000000000000000000000000000000000|000000000000000000000000000000000000000000000000000000000000'
-            #print(boo)
-            if len(linha) < 50:
-                #print(linha[7:11])
-                linha = linha[0:49].replace('\n', '') 
-                linha = linha + '|' + ('0'*3)
-                porcao = linha[7:11] if int(linha[7:11]) > 0 else '0100'
-                #print(porcao, int(linha[7:11]))
-                linha = linha + porcao
-                linha = linha + '0' + linha[12:26] 
-                linha = linha + '0'*6 + linha[26:50].replace('\n','') 
-                linha = linha + '0'*9 + '\n'
-            else:
-                linha = linha.replace('|', '0000|')
-            if int(linha[61:63]) > 28:
-                #print(linha[61:63])
-                linha = linha[:61] + '16' + linha[63:]
-            if codNutri in codNutriMGVARRAY and not(codNutri in array_cod_nutri) and boo:
-                array_cod_nutri.append(codNutri)
-                #if codNutri == 5:
-                    #print("teste")
-                #print(codNutri, codNutriMGVARRAY)
-                nutri.write(linha)
-                codNutri_array.append(codNutri)
-            #print("1")
-        arquivoMGV7.close()
-        arquivoInfonutri.close()
-        nutri.close()
-        arquivoSystel.close()
-        arr_ip = comunicabal()
-        if not 'localhost' in arr_ip:
-            arr_ip.append('localhost')
-        if len(arr_ip) > 0:
-            txt = ''
-            for ip in arr_ip:
-                #ip_db = ip.replace('\n', '')
-                #infoSystel_writer('itensSystel.TXT', info, dict_forn, dict_aler, dict_fraciona, dict_conserva, ip_db)
-                try:
-                    ip_db = ip.replace('\n', '')
-                    infoSystel_writer('itensSystel.TXT', info, dict_forn, dict_aler, dict_fraciona, dict_conserva, ip_db)
-                except:
-                    with open('log-erro-conexao.txt', 'a') as log:
-                        log.write(f'erro ao importar para: {ip}\n')
-                else:
-                    txt += f'{ip} '
-                    time.sleep(5)
-                finally:
-                    pass
-            with open('log.txt', 'a') as log:
-                log.write(f'importou corretamente: {txt}\n')
-            
-        #print(len(codPlu_array))
-        #print(len(codNutri_array))
-        #os.remove("../arqsok.bak")
-        
-        
-        print('pronto')
-        time.sleep(25)
+
+                
                 
 
-    time.sleep(20)
-    
+                if(os.path.isfile('../conserva.bak')):
+                    dict_conserva = conserva_analyze('../conserva.bak')
+                
+                elif(os.path.isfile('../conserva.txt')):
+                    dict_conserva = conserva_analyze('../conserva.txt')
+                else: dict_conserva = ''
+
+                if(os.path.isfile('../fraciona.bak')):
+                    dict_fraciona = fraciona_analyze('../fraciona.bak')
+                elif(os.path.isfile('../fraciona.txt')):
+                    dict_fraciona = fraciona_analyze('../fraciona.txt')
+                else: dict_fraciona = ''
+
+                if(os.path.isfile('../campext1.bak')):
+                    dict_aler = alergia_analyze('../campext1.bak')
+                elif(os.path.isfile('../campext1.txt')):
+                    dict_aler = alergia_analyze('../campext1.txt')
+                else: dict_aler = ''
+
+                if(os.path.isfile('../txforn.bak')):
+                    dict_forn =  forn_analyze('../txforn.bak')
+                elif(os.path.isfile('../txforn.txt')):
+                    dict_forn =  forn_analyze('../txforn.txt')
+                else:
+                    dict_forn = '' 
+                
+                if(os.path.isfile('../txinfo.bak')):
+                    info = info_analyze('../txinfo.bak')
+                elif(os.path.isfile('../txinfo.txt')):
+                    info = info_analyze('../txinfo.txt')
+
+
+                else:
+                    info = ""
+                    pass
+                if(os.path.isfile('../infnutri.bak')):
+                    arquivoInfonutri = open('../infnutri.bak', 'r')
+                elif(os.path.isfile('../infnutri.bak')):
+                    arquivoInfonutri = open('../infnutri.txt', 'r')
+                else:
+                    arquivoInfonutri = open('../infnutri.bak', 'w')
+                
+                itens_analize(arquivo)
+
+
+                arquivoMGV7 = open('../itens.TXT', 'r')
+
+                nutri = open('nutriSystel.TXT', 'w')
+                codPlu_array = []
+                codNutri_array = []
+                codNutriMGVARRAY = []
+                receita_array = []
+                setor_array = []
+                arquivoSystel = open('itensSystel.TXT', 'w')
+                for linha in arquivoMGV7:
+                
+                    
+
+                    codPlu = linha[3:9]
+                    
+                    codPlu_array.append(codPlu)
+                    codNutriMGV = linha[79:84]
+                    codReceita = linha[68:74]
+                    receita_array.append(codReceita)
+
+                    codNutriMGVARRAY.append(int(codNutriMGV))
+                    textoModificado = linha[0:43] + (' ')*25 + codPlu + linha[74:150] +  "000000|01|                                                                      0000000000000000000000000||0||0000000000000000000000"
+
+
+                    arquivoSystel.write(textoModificado+"\n")
+
+                arquivoSystel.close()
+
+
+
+                
+                array_cod_nutri = []
+
+
+                
+
+
+                for linha in arquivoInfonutri:
+                    codNutri = int(linha[1:7])
+
+                    boo = linha[7:110] != '000000000000000000000000000000000000000000|000000000000000000000000000000000000000000000000000000000000'
+                    #print(boo)
+                    if len(linha) < 50:
+                        #print(linha[7:11])
+                        linha = linha[0:49].replace('\n', '') 
+                        linha = linha + '|' + ('0'*3)
+                        porcao = linha[7:11] if int(linha[7:11]) > 0 else '0100'
+                        #print(porcao, int(linha[7:11]))
+                        linha = linha + porcao
+                        linha = linha + '0' + linha[12:26] 
+                        linha = linha + '0'*6 + linha[26:50].replace('\n','') 
+                        linha = linha + '0'*9 + '\n'
+                    else:
+                        linha = linha.replace('|', '0000|')
+                    if int(linha[61:63]) > 28:
+                        #print(linha[61:63])
+                        linha = linha[:61] + '16' + linha[63:]
+                    if codNutri in codNutriMGVARRAY and not(codNutri in array_cod_nutri) and boo:
+                        array_cod_nutri.append(codNutri)
+                        #if codNutri == 5:
+                            #print("teste")
+                        #print(codNutri, codNutriMGVARRAY)
+                        nutri.write(linha)
+                        codNutri_array.append(codNutri)
+                    #print("1")
+                arquivoMGV7.close()
+                arquivoInfonutri.close()
+                nutri.close()
+                arquivoSystel.close()
+                arr_ip = comunicabal()
+                if not 'localhost' in arr_ip:
+                    arr_ip.append('localhost')
+                if len(arr_ip) > 0:
+                    txt = ''
+                    for ip in arr_ip:
+                        #ip_db = ip.replace('\n', '')
+                        #infoSystel_writer('itensSystel.TXT', info, dict_forn, dict_aler, dict_fraciona, dict_conserva, ip_db)
+                        try:
+                            ip_db = ip.replace('\n', '')
+                            infoSystel_writer('itensSystel.TXT', info, dict_forn, dict_aler, dict_fraciona, dict_conserva, ip_db)
+                        except Exception as err:
+                            with open('log-erro-conexao.txt', 'a') as log:
+                                log.write(f'erro ao importar para: {ip} erro : {err}\n')
+                        else:
+                            txt += f'{ip} '
+                            time.sleep(5)
+                        finally:
+                            pass
+                    with open('log.txt', 'a') as log:
+                        log.write(f'importou corretamente: {txt}\n')
+                    
+                #print(len(codPlu_array))
+                #print(len(codNutri_array))
+                #os.remove("../arqsok.bak")
+                
+                
+                print('pronto')
+                time.sleep(25)
+            else: print("Arquivo não modificado")
+                        
+
+            time.sleep(20)
+        
+if __name__ == "__main__":
+    main()
