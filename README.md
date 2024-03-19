@@ -1,4 +1,4 @@
-# Integração de Dados com PostgreSQL
+# Integração de Dados com PostgreSQL com Arquivos Toledo
 
 Este repositório contém um script em Python para integração de dados em um banco de dados PostgreSQL. O script realiza análises em arquivos de texto e envia as informações processadas para o banco de dados.
 
