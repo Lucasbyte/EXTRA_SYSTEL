@@ -360,7 +360,7 @@ func infoSystelWriter(arq string, d_info, d_forn, d_aler, d_fra, d_con map[strin
 
 	passw, user := "1234", "user"
 	if ip == "localhost" {
-		passw, user = "Systel#4316", "systel"
+		passw, user = "", "systel"
 	}
 
 	db_acess := fmt.Sprintf("user=%s password=%s host=%s dbname=cuora sslmode=disable", user, passw, ip)
